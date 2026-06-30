@@ -794,18 +794,16 @@ function renderSummary(D,A){
   const refundRate=A.sold? A.refund/A.sold : 0;
   const p1=x=>(x*100).toFixed(1)+'%';
 
-  // ===== Đoạn mở: bức tranh chung + dòng hoa hồng ước tính → thực nhận =====
-  let intro=`Trong phạm vi đang xem, cửa hàng/nhà sáng tạo đẩy được <b>${money(A.gmv)}</b> GMV qua <b>${fmt(A.orders)}</b> đơn — `+
-    `quy mô không nhỏ. Nhưng phần thưởng thực tế lại là câu chuyện khác: hoa hồng kỳ vọng vào khoảng <b>${money(A.est)}</b>, `;
+  // ===== Đoạn mở: nói đơn giản cho người không chuyên =====
+  let intro=`Tổng tiền hàng bán ra là <b>${money(A.gmv)}</b> từ <b>${fmt(A.orders)}</b> đơn. `;
   if(gap>0)
-    intro+=`trong khi mới cầm chắc trong tay <b>${money(A.act)}</b>. Khoảng <b>${money(gap)}</b> còn lại (~${p1(1-eff)} kỳ vọng) vẫn đang treo lơ lửng hoặc đã bị gạch bỏ. `;
+    intro+=`Theo tỷ lệ hoa hồng, lẽ ra được nhận khoảng <b>${money(A.est)}</b>, nhưng đến giờ mới thực nhận <b>${money(A.act)}</b>. `+
+      `Còn khoảng <b>${money(gap)}</b> (gần ${p1(1-eff)}) chưa về — một phần đơn còn đang chờ duyệt, một phần bị loại nên không được tính. `;
   else
-    intro+=`và gần như đã về đủ — dòng tiền rất “sạch”. `;
-  let verdict;
-  if(ineRate>=0.2 || eff<0.6) verdict=`Nói thẳng: bán được hàng không phải vấn đề, <b>giữ được hoa hồng</b> mới là chỗ đang chảy máu.`;
-  else if(top4Share>0.8 || liveShare>0.95) verdict=`Bức tranh nhìn chung tốt, chỉ có điều nguồn thu đang hơi “đặt nhiều trứng vào một giỏ”.`;
-  else verdict=`Nhìn tổng thể, guồng máy đang chạy ổn — còn vài chỗ để siết cho chặt hơn.`;
-  intro+=verdict;
+    intro+=`Hoa hồng lẽ ra được nhận (<b>${money(A.est)}</b>) gần như đã về đủ tài khoản (<b>${money(A.act)}</b>). `;
+  if(ineRate>=0.2 || eff<0.6) intro+=`Nói gọn: việc bán hàng đang tốt, vấn đề là làm sao <b>nhận đủ phần hoa hồng đáng được hưởng</b>.`;
+  else if(top4Share>0.8 || liveShare>0.95) intro+=`Nhìn chung khá tốt, chỉ là nguồn thu đang dồn vào một vài chỗ, nên cần trải rộng hơn cho an toàn.`;
+  else intro+=`Nhìn chung mọi thứ đang chạy ổn, vẫn còn vài điểm có thể cải thiện thêm.`;
 
   // ===== Bức tranh hiện tại (gạch đầu dòng, theo trình tự kể chuyện) =====
   const finds=[];
@@ -813,54 +811,54 @@ function renderSummary(D,A){
 
   if(settleRate<0.7)
     F(settleRate<0.5?'bad':'warn',
-      `<b>Dòng tiền về chậm.</b> Mới <b>${p1(settleRate)}</b> số dòng đơn được quyết toán, còn <b>${fmt(A.rows-A.settled)}</b> dòng đang treo hoặc bị loại — đây là lý do chính khiến thực nhận thấp hơn hẳn kỳ vọng.`);
+      `<b>Hoa hồng về chậm.</b> Mới khoảng <b>${p1(settleRate)}</b> đơn hàng được duyệt trả hoa hồng, số còn lại (<b>${fmt(A.rows-A.settled)}</b> dòng) đang chờ duyệt hoặc bị loại. Đây là lý do chính khiến tiền thực nhận thấp hơn dự kiến.`);
   else
-    F('good',`<b>Dòng tiền lành mạnh.</b> Phần lớn đơn đã quyết toán (${p1(settleRate)}), hoa hồng về đều đặn.`);
+    F('good',`<b>Hoa hồng về đều.</b> Phần lớn đơn đã được duyệt trả hoa hồng (${p1(settleRate)}).`);
 
   if(ineRate>=0.1)
     F(ineRate>=0.2?'bad':'warn',
-      `<b>Đơn “không đủ điều kiện” là điểm rò rỉ lớn nhất.</b> Nhóm này chiếm tới <b>${p1(ineRate)}</b> và kéo theo khoảng <b>${money(ineLost)}</b> hoa hồng${ineTopShop?`, dồn nhiều ở <b>${esc(ineTopShop.k)}</b>`:''}. Thủ phạm quen thuộc thường là huỷ/hoàn hàng hoặc cách gắn link, nội dung chưa khớp chính sách.`);
+      `<b>Nhiều đơn bị loại — đây là chỗ mất tiền nhiều nhất.</b> Có tới <b>${p1(ineRate)}</b> đơn không được tính hoa hồng, tương đương khoảng <b>${money(ineLost)}</b> bị mất${ineTopShop?`, nhiều nhất ở cửa hàng <b>${esc(ineTopShop.k)}</b>`:''}. Thường là do khách huỷ/trả hàng, hoặc cách gắn link và nội dung chưa đúng quy định của TikTok.`);
 
   if(refundRate>=0.05)
     F(refundRate>=0.1?'bad':'warn',
-      `<b>Tỷ lệ hoàn còn cấn.</b> Ở mức <b>${(refundRate*100).toFixed(1)}%</b> (${fmt(A.refund)} món)${refundShop&&refundShop.rate>=0.1?`, gắt nhất ở <b>${esc(refundShop.k)}</b> (${(refundShop.rate*100).toFixed(1)}%)`:''} — mỗi đơn hoàn là một lần hoa hồng đã chốt rồi lại bốc hơi.`);
+      `<b>Tỷ lệ trả hàng hơi cao.</b> Khoảng <b>${(refundRate*100).toFixed(1)}%</b> số món bị trả lại (${fmt(A.refund)} món)${refundShop&&refundShop.rate>=0.1?`, cao nhất ở <b>${esc(refundShop.k)}</b> (${(refundShop.rate*100).toFixed(1)}%)`:''}. Mỗi món bị trả là một lần mất khoản hoa hồng đã tính.`);
   else if(A.sold>0)
-    F('good',`<b>Hoàn hàng trong tầm kiểm soát</b> (${(refundRate*100).toFixed(1)}%).`);
+    F('good',`<b>Trả hàng ít</b> (${(refundRate*100).toFixed(1)}%) — rất tốt.`);
 
   if(nShop>=2 && top4Share>0.6)
     F(top4Share>0.8?'bad':'warn',
-      `<b>Doanh số dồn vào số ít cửa hàng.</b> Top ${Math.min(4,nShop)} đã gánh <b>${p1(top4Share)}</b> GMV, riêng <b>${esc(topShop.k)}</b> chiếm <b>${p1(top1Share)}</b> — chỉ cần một nguồn này hụt hơi là tổng thu rung lắc theo.`);
+      `<b>Doanh số phụ thuộc vào ít cửa hàng.</b> ${Math.min(4,nShop)} cửa hàng lớn nhất chiếm tới <b>${p1(top4Share)}</b> doanh số, riêng <b>${esc(topShop.k)}</b> đã <b>${p1(top1Share)}</b>. Nếu một trong số này bán chậm lại, thu nhập sẽ giảm theo ngay.`);
 
   if(liveShare>0.9)
-    F('warn',`<b>Sống nhờ Live.</b> Gần như toàn bộ đơn (${p1(liveShare)}) đến từ livestream; video ngắn và trang trưng bày gần như chưa được tận dụng để bán ngoài giờ phát.`);
+    F('warn',`<b>Gần như chỉ bán được khi Live.</b> ${p1(liveShare)} đơn đến từ livestream; video ngắn và gian hàng trưng bày gần như chưa tạo ra đơn. Nghĩa là ngoài giờ live thì hầu như không có doanh thu.`);
 
   F(topProdShare>0.4?'warn':'good',
     topProdShare>0.4
-      ? `<b>Phụ thuộc một mã chủ lực.</b> Riêng “${esc(clip(topProd.name,40))}” đã chiếm ${p1(topProdShare)} GMV trên tổng ${fmt(nProd)} sản phẩm.`
-      : `<b>Danh mục đủ rộng.</b> ${fmt(nProd)} sản phẩm và không quá lệ thuộc một mã (mã mạnh nhất chỉ ${p1(topProdShare)} GMV) — nền tảng tốt để mở rộng.`);
+      ? `<b>Phụ thuộc một sản phẩm chính.</b> Riêng “${esc(clip(topProd.name,40))}” đã chiếm ${p1(topProdShare)} doanh số trong tổng ${fmt(nProd)} sản phẩm.`
+      : `<b>Sản phẩm khá đa dạng.</b> Có ${fmt(nProd)} sản phẩm và không quá phụ thuộc một món (món bán chạy nhất chỉ chiếm ${p1(topProdShare)} doanh số) — đây là điểm tốt.`);
 
   // ===== Nên làm gì tiếp theo =====
   const recos=[];
   const R=(p,html)=>recos.push({p,html});
   if(ineRate>=0.1 && ineLost>0)
-    R(1,`<b>Cứu nhóm đơn không đủ điều kiện trước tiên.</b> Soát lại quy trình huỷ/hoàn và cách gắn link${ineTopShop?`, bắt đầu từ <b>${esc(ineTopShop.k)}</b>`:''}; kéo giảm được một phần thôi cũng có thể thu lại tới <b>${money(ineLost)}</b>.`);
+    R(1,`<b>Xử lý nhóm đơn bị loại trước tiên.</b> Xem lại vì sao đơn bị loại (khách huỷ/trả hàng, hay gắn link sai cách)${ineTopShop?`, bắt đầu từ cửa hàng <b>${esc(ineTopShop.k)}</b>`:''}. Giảm được phần này là có thể lấy lại tới <b>${money(ineLost)}</b> hoa hồng.`);
   if(refundShop && refundShop.rate>=0.1)
-    R(1,`<b>Ngồi lại với ${esc(refundShop.k)}</b> về size, ảnh và cam kết giao hàng để hạ tỷ lệ hoàn — đây là khoản rò rỉ hoa hồng dễ bịt nhất.`);
+    R(1,`<b>Trao đổi với cửa hàng ${esc(refundShop.k)} để giảm trả hàng.</b> Kiểm tra lại size, hình ảnh và mô tả sản phẩm cho đúng — đây là cách dễ nhất để bớt mất hoa hồng.`);
   if(top4Share>0.7 && nShop>4)
-    R(2,`<b>Mở rộng tệp cửa hàng</b> ngoài nhóm dẫn đầu, để nồi cơm bớt phụ thuộc một vài nguồn.`);
+    R(2,`<b>Tìm thêm cửa hàng mới để hợp tác.</b> Đừng chỉ dựa vào vài cửa hàng lớn — trải rộng ra thì thu nhập sẽ ổn định hơn.`);
   if(liveShare>0.9)
-    R(2,`<b>Tận dụng video ngắn và trang trưng bày</b> để có đơn đều đặn ngoài khung giờ live, kéo dài tuổi thọ mỗi nội dung.`);
+    R(2,`<b>Làm thêm video ngắn và sắp xếp gian hàng trưng bày</b> để có đơn cả khi không livestream.`);
   if(pending.length>0 && pendEst>0)
-    R(2,`<b>Bám sát ${fmt(pending.length)} đơn đang treo</b> (~${money(pendEst)} hoa hồng) cho tới hết thời gian đối soát để chốt về thực nhận.`);
+    R(2,`<b>Theo dõi ${fmt(pending.length)} đơn đang chờ duyệt</b> (khoảng ${money(pendEst)} hoa hồng). Chờ qua thời gian khách có thể trả hàng, nếu đơn ổn thì khoản này sẽ về tài khoản.`);
   if(topProdShare>0.4 && topProd)
-    R(2,`<b>Bán kèm/upsell quanh mã chủ lực</b> “${esc(clip(topProd.name,38))}” để không bỏ trứng vào một giỏ.`);
+    R(2,`<b>Bán kèm thêm sản phẩm khác</b> cùng với món bán chạy “${esc(clip(topProd.name,38))}” để không phụ thuộc vào một sản phẩm.`);
   if(topShop.gmv>0)
-    R(3,`<b>Nhân bản công thức của ${esc(topShop.k)}</b> — khung giờ, kịch bản live, nhóm hàng đang ăn — sang các cửa hàng còn lại.`);
-  R(3,`<b>Dồn lực cho hàng “vừa lãi vừa ít hoàn”</b>: ưu tiên ngân sách cho SKU hoa hồng tốt, hoàn thấp; mạnh tay cắt mã hoàn nhiều.`);
+    R(3,`<b>Học theo cách làm của ${esc(topShop.k)}</b> (đang hiệu quả nhất) — cùng khung giờ live, cách dẫn dắt, nhóm sản phẩm — rồi áp dụng cho các cửa hàng khác.`);
+  R(3,`<b>Ưu tiên đẩy mạnh sản phẩm hoa hồng cao mà ít bị trả lại</b>; giảm bớt những sản phẩm hay bị trả hàng.`);
 
   // ===== Render 1 card prose =====
   let html=`<p>${intro}</p>`;
-  html+=`<div class="sub-h"><span class="ico">${icon('activity')}</span>Bức tranh hiện tại</div>`+
+  html+=`<div class="sub-h"><span class="ico">${icon('activity')}</span>Tình hình hiện tại</div>`+
     `<ul class="bullets">`+finds.map(f=>`<li class="b-${f.sev}">${f.html}</li>`).join('')+`</ul>`;
   html+=`<div class="sub-h"><span class="ico">${icon('bulb')}</span>Nên làm gì tiếp theo</div>`+
     `<ul class="bullets">`+recos.sort((a,b)=>a.p-b.p).slice(0,6).map(r=>`<li>${r.html}</li>`).join('')+`</ul>`;
