@@ -75,7 +75,20 @@ header.app{display:flex;align-items:center;gap:14px;margin-bottom:22px;flex-wrap
 #drop .small{color:var(--mut);font-size:13px}
 .err{background:rgba(254,44,85,.1);border:1px solid rgba(254,44,85,.45);color:#ff9fb1;
   padding:12px 14px;border-radius:12px;margin-top:14px;display:none;align-items:center;gap:9px}
-.err .ico{font-size:17px;color:var(--red)}
+.err .ico{font-size:17px;color:var(--red);flex:0 0 auto}
+
+/* Nạp từ link */
+.url-load{margin-top:16px}
+.url-or{display:flex;align-items:center;gap:12px;color:var(--mut2);font-size:12px;margin-bottom:12px}
+.url-or::before,.url-or::after{content:"";flex:1;height:1px;background:var(--line)}
+.url-row{display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--line);
+  border-radius:12px;padding:7px 7px 7px 14px;transition:border-color .15s var(--ease),box-shadow .15s var(--ease)}
+.url-row:focus-within{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(37,244,238,.15)}
+.url-row>.ico{color:var(--mut2);font-size:17px;flex:0 0 auto}
+.url-row input{flex:1;min-width:0;background:transparent;border:none;outline:none;color:var(--ink);font-family:inherit;font-size:14px}
+.url-row input::placeholder{color:var(--mut2)}
+.url-row .btn{flex:0 0 auto}
+.url-hint{color:var(--mut2);font-size:11.5px;margin-top:9px;line-height:1.55}
 
 /* ---------- Filters ---------- */
 .filters{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-lg);padding:16px 18px;margin-bottom:20px}
@@ -261,14 +274,25 @@ td.num{font-variant-numeric:tabular-nums}
     </div>
   </header>
 
-  <!-- DROPZONE -->
-  <div id="drop">
-    <input type="file" id="file" accept=".xlsx,.xls" style="display:none">
-    <div class="ico drop-ico" data-icon="upload"></div>
-    <div class="big">Kéo–thả file .xlsx vào đây</div>
-    <div class="small">hoặc bấm để chọn file export đơn hàng affiliate của TikTok Shop</div>
+  <!-- UPLOAD AREA -->
+  <div id="uploadArea">
+    <div id="drop">
+      <input type="file" id="file" accept=".xlsx,.xls" style="display:none">
+      <div class="ico drop-ico" data-icon="upload"></div>
+      <div class="big">Kéo–thả file .xlsx vào đây</div>
+      <div class="small">hoặc bấm để chọn file export đơn hàng affiliate của TikTok Shop</div>
+    </div>
+    <div class="url-load">
+      <div class="url-or"><span>hoặc dán link tải file</span></div>
+      <div class="url-row">
+        <span class="ico" data-icon="link"></span>
+        <input type="url" id="urlInput" placeholder="Dán link .xlsx (vd: link tải đơn hàng TikTok)…" autocomplete="off" spellcheck="false">
+        <button id="urlBtn" class="btn primary"><span class="ico" data-icon="download"></span><span class="btn-label">Tải &amp; phân tích</span></button>
+      </div>
+      <div class="url-hint">File được tải thẳng từ nguồn về trình duyệt của bạn — không qua máy chủ trung gian. Link cần cho phép truy cập trực tiếp (CORS); nếu không tải được, hãy tải file về máy rồi kéo-thả vào.</div>
+    </div>
+    <div id="err" class="err"><span class="ico" data-icon="alert"></span><span id="errMsg"></span></div>
   </div>
-  <div id="err" class="err"><span class="ico" data-icon="alert"></span><span id="errMsg"></span></div>
 
   <!-- DASHBOARD -->
   <div id="dash" class="hidden">

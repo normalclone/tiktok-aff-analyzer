@@ -75,7 +75,20 @@ header.app{display:flex;align-items:center;gap:14px;margin-bottom:22px;flex-wrap
 #drop .small{color:var(--mut);font-size:13px}
 .err{background:rgba(254,44,85,.1);border:1px solid rgba(254,44,85,.45);color:#ff9fb1;
   padding:12px 14px;border-radius:12px;margin-top:14px;display:none;align-items:center;gap:9px}
-.err .ico{font-size:17px;color:var(--red)}
+.err .ico{font-size:17px;color:var(--red);flex:0 0 auto}
+
+/* Nạp từ link */
+.url-load{margin-top:16px}
+.url-or{display:flex;align-items:center;gap:12px;color:var(--mut2);font-size:12px;margin-bottom:12px}
+.url-or::before,.url-or::after{content:"";flex:1;height:1px;background:var(--line)}
+.url-row{display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--line);
+  border-radius:12px;padding:7px 7px 7px 14px;transition:border-color .15s var(--ease),box-shadow .15s var(--ease)}
+.url-row:focus-within{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(37,244,238,.15)}
+.url-row>.ico{color:var(--mut2);font-size:17px;flex:0 0 auto}
+.url-row input{flex:1;min-width:0;background:transparent;border:none;outline:none;color:var(--ink);font-family:inherit;font-size:14px}
+.url-row input::placeholder{color:var(--mut2)}
+.url-row .btn{flex:0 0 auto}
+.url-hint{color:var(--mut2);font-size:11.5px;margin-top:9px;line-height:1.55}
 
 /* ---------- Filters ---------- */
 .filters{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-lg);padding:16px 18px;margin-bottom:20px}
@@ -261,14 +274,25 @@ td.num{font-variant-numeric:tabular-nums}
     </div>
   </header>
 
-  <!-- DROPZONE -->
-  <div id="drop">
-    <input type="file" id="file" accept=".xlsx,.xls" style="display:none">
-    <div class="ico drop-ico" data-icon="upload"></div>
-    <div class="big">Kéo–thả file .xlsx vào đây</div>
-    <div class="small">hoặc bấm để chọn file export đơn hàng affiliate của TikTok Shop</div>
+  <!-- UPLOAD AREA -->
+  <div id="uploadArea">
+    <div id="drop">
+      <input type="file" id="file" accept=".xlsx,.xls" style="display:none">
+      <div class="ico drop-ico" data-icon="upload"></div>
+      <div class="big">Kéo–thả file .xlsx vào đây</div>
+      <div class="small">hoặc bấm để chọn file export đơn hàng affiliate của TikTok Shop</div>
+    </div>
+    <div class="url-load">
+      <div class="url-or"><span>hoặc dán link tải file</span></div>
+      <div class="url-row">
+        <span class="ico" data-icon="link"></span>
+        <input type="url" id="urlInput" placeholder="Dán link .xlsx (vd: link tải đơn hàng TikTok)…" autocomplete="off" spellcheck="false">
+        <button id="urlBtn" class="btn primary"><span class="ico" data-icon="download"></span><span class="btn-label">Tải &amp; phân tích</span></button>
+      </div>
+      <div class="url-hint">File được tải thẳng từ nguồn về trình duyệt của bạn — không qua máy chủ trung gian. Link cần cho phép truy cập trực tiếp (CORS); nếu không tải được, hãy tải file về máy rồi kéo-thả vào.</div>
+    </div>
+    <div id="err" class="err"><span class="ico" data-icon="alert"></span><span id="errMsg"></span></div>
   </div>
-  <div id="err" class="err"><span class="ico" data-icon="alert"></span><span id="errMsg"></span></div>
 
   <!-- DASHBOARD -->
   <div id="dash" class="hidden">
@@ -445,7 +469,8 @@ const ICONS={
   tick:'<polyline points="20 6 9 17 4 12"/>',
   clipboard:'<path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="m9 14 2 2 4-4"/>',
   bulb:'<path d="M9 18h6"/><path d="M10 22h4"/><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"/>',
-  video:'<polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>'
+  video:'<polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>',
+  link:'<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>'
 };
 function icon(name,size){const p=ICONS[name]||'';return `<svg class="ik" viewBox="0 0 24 24"${size?` style="width:${size}px;height:${size}px"`:''}>${p}</svg>`;}
 function injectIcons(root=document){root.querySelectorAll('[data-icon]').forEach(el=>{el.innerHTML=icon(el.dataset.icon);});}
@@ -604,58 +629,76 @@ document.addEventListener('click',e=>{_openPickers.forEach(p=>{if(!p.el.contains
 /* ============================================================
    Đọc file
    ============================================================ */
-function handleFile(file){
-  hideErr();
-  showLoading('Đang đọc file…');
+// Parse + render từ một ArrayBuffer (dùng chung cho cả file tải lên lẫn link)
+function processBuffer(buf, fileName){
   const fail=msg=>{hideLoading();showErr(msg);};
+  /* Hoãn 1 nhịp để trình duyệt kịp vẽ loader (spinner xoay trên compositor)
+     trước khi XLSX.read chiếm luồng chính → có cảm giác "đang tải", không treo đơ */
+  setTimeout(()=>{
+    try{
+      const wb=XLSX.read(buf,{type:'array'});
+      const ws=wb.Sheets[wb.SheetNames[0]];
+      const rows=XLSX.utils.sheet_to_json(ws,{header:1,raw:true,defval:''});
+      if(!rows.length) return fail('File rỗng.');
+      const headers=rows[0].map(h=>String(h).trim());
+      COLMAP=buildColMap(headers);
+      if(COLMAP.gmv<0 && COLMAP.price<0)
+        return fail('Không nhận diện được cột GMV/Giá. File có đúng định dạng export đơn hàng affiliate TikTok không?');
+      const C=COLMAP, get=(r,k)=> C[k]>=0 ? r[C[k]] : '';
+      RAW=[];
+      for(let i=1;i<rows.length;i++){
+        const r=rows[i];
+        if(!r || r.every(c=>c===''||c==null)) continue;
+        const gmv=toNum(get(r,'gmv')), price=toNum(get(r,'price'));
+        RAW.push({
+          orderId:String(get(r,'orderId')||'').trim(),
+          product:String(get(r,'product')||'(không tên)').trim()||'(không tên)',
+          productId:String(get(r,'productId')||'').trim(),
+          shop:String(get(r,'shop')||'(không rõ)').trim()||'(không rõ)',
+          orderType:String(get(r,'orderType')||'(không rõ)').trim()||'(không rõ)',
+          status:String(get(r,'status')||'(không rõ)').trim()||'(không rõ)',
+          content:String(get(r,'content')||'(không rõ)').trim()||'(không rõ)',
+          sold:toNum(get(r,'sold'))||0, refund:toNum(get(r,'refund'))||0,
+          gmv:isNaN(gmv)?(isNaN(price)?0:price):gmv,
+          estComm:toNum(get(r,'estComm'))||0, actComm:toNum(get(r,'actComm'))||0,
+          finalRecv:toNum(get(r,'finalRecv'))||0, day:parseDay(get(r,'orderDate'))
+        });
+      }
+      if(!RAW.length) return fail('Không có dòng dữ liệu nào sau tiêu đề.');
+      META.fileName=fileName||'dữ liệu'; META.totalRows=RAW.length;
+      initFilters(); render();
+      document.getElementById('uploadArea').classList.add('hidden');
+      document.getElementById('dash').classList.remove('hidden');
+      document.getElementById('btnSample').classList.remove('hidden');
+      document.getElementById('btnCsv').classList.remove('hidden');
+      hideLoading();
+    }catch(ex){ fail('Lỗi xử lý file: '+ex.message); console.error(ex); }
+  },60);
+}
+function handleFile(file){
+  hideErr(); showLoading('Đang đọc file…');
   const reader=new FileReader();
-  reader.onerror=()=>fail('Không đọc được file.');
-  reader.onload=e=>{
-    setLoadingSub('Đang phân tích '+(file.name||'')+'…');
-    /* Hoãn 1 nhịp để trình duyệt kịp vẽ loader (spinner xoay trên compositor)
-       trước khi XLSX.read chiếm luồng chính → có cảm giác "đang tải", không treo đơ */
-    setTimeout(()=>{
-      try{
-        const wb=XLSX.read(e.target.result,{type:'array'});
-        const ws=wb.Sheets[wb.SheetNames[0]];
-        const rows=XLSX.utils.sheet_to_json(ws,{header:1,raw:true,defval:''});
-        if(!rows.length) return fail('File rỗng.');
-        const headers=rows[0].map(h=>String(h).trim());
-        COLMAP=buildColMap(headers);
-        if(COLMAP.gmv<0 && COLMAP.price<0)
-          return fail('Không nhận diện được cột GMV/Giá. File có đúng định dạng export đơn hàng affiliate TikTok không?');
-        const C=COLMAP, get=(r,k)=> C[k]>=0 ? r[C[k]] : '';
-        RAW=[];
-        for(let i=1;i<rows.length;i++){
-          const r=rows[i];
-          if(!r || r.every(c=>c===''||c==null)) continue;
-          const gmv=toNum(get(r,'gmv')), price=toNum(get(r,'price'));
-          RAW.push({
-            orderId:String(get(r,'orderId')||'').trim(),
-            product:String(get(r,'product')||'(không tên)').trim()||'(không tên)',
-            productId:String(get(r,'productId')||'').trim(),
-            shop:String(get(r,'shop')||'(không rõ)').trim()||'(không rõ)',
-            orderType:String(get(r,'orderType')||'(không rõ)').trim()||'(không rõ)',
-            status:String(get(r,'status')||'(không rõ)').trim()||'(không rõ)',
-            content:String(get(r,'content')||'(không rõ)').trim()||'(không rõ)',
-            sold:toNum(get(r,'sold'))||0, refund:toNum(get(r,'refund'))||0,
-            gmv:isNaN(gmv)?(isNaN(price)?0:price):gmv,
-            estComm:toNum(get(r,'estComm'))||0, actComm:toNum(get(r,'actComm'))||0,
-            finalRecv:toNum(get(r,'finalRecv'))||0, day:parseDay(get(r,'orderDate'))
-          });
-        }
-        if(!RAW.length) return fail('Không có dòng dữ liệu nào sau tiêu đề.');
-        META.fileName=file.name; META.totalRows=RAW.length;
-        initFilters(); render();
-        document.getElementById('drop').classList.add('hidden');
-        document.getElementById('dash').classList.remove('hidden');
-        document.getElementById('btnSample').classList.remove('hidden');
-        document.getElementById('btnCsv').classList.remove('hidden');
-        hideLoading();
-      }catch(ex){ fail('Lỗi xử lý file: '+ex.message); console.error(ex); }
-    },60);
-  };
+  reader.onerror=()=>{hideLoading();showErr('Không đọc được file.');};
+  reader.onload=e=>{ setLoadingSub('Đang phân tích '+(file.name||'')+'…'); processBuffer(e.target.result, file.name); };
   reader.readAsArrayBuffer(file);
+}
+async function handleUrl(rawUrl){
+  const url=(rawUrl||'').trim();
+  if(!url){ showErr('Hãy dán link file .xlsx trước.'); return; }
+  if(!/^https?:\/\//i.test(url)){ showErr('Link phải bắt đầu bằng http:// hoặc https://'); return; }
+  hideErr(); showLoading('Đang tải từ link…');
+  try{
+    const res=await fetch(url);
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    const buf=await res.arrayBuffer();
+    let name=decodeURIComponent((url.split('?')[0].split('/').pop())||'').trim();
+    if(!/\.(xlsx|xls)$/i.test(name)) name=(name||'tu-link')+'.xlsx';
+    setLoadingSub('Đang phân tích '+name+'…');
+    processBuffer(buf, name);
+  }catch(ex){
+    hideLoading();
+    showErr('Không tải được từ link ('+ex.message+'). Link có thể đã hết hạn, hoặc nguồn chặn truy cập trực tiếp (CORS). Cách chắc chắn: tải file về máy rồi kéo-thả vào ô phía trên.');
+  }
 }
 function showLoading(sub){document.getElementById('ldSub').textContent=sub||'Đọc & phân tích file';document.getElementById('loading').classList.add('show');}
 function setLoadingSub(t){document.getElementById('ldSub').textContent=t;}
@@ -975,12 +1018,16 @@ fileInput.onchange=e=>{if(e.target.files[0])handleFile(e.target.files[0]);};
 ['dragenter','dragover'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add('hover');}));
 ['dragleave','drop'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove('hover');}));
 drop.addEventListener('drop',e=>{const f=e.dataTransfer.files[0];if(f)handleFile(f);});
+// nạp từ link
+const urlInput=document.getElementById('urlInput'), urlBtn=document.getElementById('urlBtn');
+urlBtn.onclick=()=>handleUrl(urlInput.value);
+urlInput.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();handleUrl(urlInput.value);}});
 document.getElementById('btnSample').onclick=()=>{
   document.getElementById('dash').classList.add('hidden');
-  document.getElementById('drop').classList.remove('hidden');
+  document.getElementById('uploadArea').classList.remove('hidden');
   document.getElementById('btnSample').classList.add('hidden');
   document.getElementById('btnCsv').classList.add('hidden');
-  fileInput.value='';
+  fileInput.value=''; urlInput.value='';
 };
 document.getElementById('btnCsv').onclick=exportCSV;
 
