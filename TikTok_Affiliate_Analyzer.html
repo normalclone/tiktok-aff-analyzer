@@ -811,7 +811,7 @@ function renderSummary(D,A){
 
   if(settleRate<0.7)
     F(settleRate<0.5?'bad':'warn',
-      `<b>Hoa hồng về chậm.</b> Mới khoảng <b>${p1(settleRate)}</b> đơn hàng được duyệt trả hoa hồng, số còn lại (<b>${fmt(A.rows-A.settled)}</b> dòng) đang chờ duyệt hoặc bị loại. Đây là lý do chính khiến tiền thực nhận thấp hơn dự kiến.`);
+      `<b>Hoa hồng về chậm.</b> Mới khoảng <b>${p1(settleRate)}</b> đơn hàng được duyệt trả hoa hồng, còn <b>${fmt(A.rows-A.settled)}</b> đơn đang bị treo hoặc bị loại. Đây là lý do chính khiến tiền thực nhận thấp hơn dự kiến.`);
   else
     F('good',`<b>Hoa hồng về đều.</b> Phần lớn đơn đã được duyệt trả hoa hồng (${p1(settleRate)}).`);
 
