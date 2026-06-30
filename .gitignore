@@ -1,0 +1,14 @@
+# Dữ liệu thật của người dùng — KHÔNG đẩy lên repo công khai
+*.xlsx
+*.xls
+*.csv
+
+# Node / tooling
+node_modules/
+scratchpad/
+*.log
+
+# OS
+Thumbs.db
+.DS_Store
+desktop.ini

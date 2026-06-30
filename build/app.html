@@ -1,0 +1,395 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TikTok Affiliate Analyzer</title>
+<style>
+:root{
+  /* TikTok palette */
+  --black:#000000; --bg:#0a0a0c; --surface:#121214; --surface2:#1a1a1e; --elev:#202024;
+  --line:#2a2a30; --line2:#33333b;
+  --ink:#ffffff; --mut:#a8a8b3; --mut2:#73737d;
+  --cyan:#25f4ee; --red:#fe2c55; --amber:#ffb02e; --green:#39e29a; --blue:#5b9dff; --violet:#b794ff;
+  --radius:14px; --radius-lg:18px;
+  --shadow:0 8px 30px rgba(0,0,0,.55);
+  --ease:cubic-bezier(.22,1,.36,1);
+  --z-dropdown:100; --z-sticky:5;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--black);
+  color:var(--ink);
+  font-family:"TikTok Sans","Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;
+  font-size:14px;line-height:1.45;-webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:none;margin:0 auto;padding:26px 34px 90px}
+
+/* ---------- Custom scrollbar (đồng bộ theme tối, dùng màu mờ nên hợp mọi nền) ---------- */
+*{scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.18) transparent}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15);border-radius:8px}
+::-webkit-scrollbar-thumb:hover{background:rgba(37,244,238,.5)}
+::-webkit-scrollbar-thumb:active{background:var(--cyan)}
+::-webkit-scrollbar-corner{background:transparent}
+
+svg{display:block}
+.ico{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto}
+/* mọi icon do icon() sinh ra mang class .ik -> luôn render dạng nét, kích thước 1em, không phụ thuộc wrapper */
+.ik{display:block;width:1em;height:1em;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;fill:none}
+
+/* ---------- Header ---------- */
+header.app{display:flex;align-items:center;gap:14px;margin-bottom:22px;flex-wrap:wrap}
+.logo{width:46px;height:46px;border-radius:13px;flex:0 0 auto;background:#000;border:1px solid var(--line);
+  display:grid;place-items:center;position:relative}
+.logo svg{width:26px;height:26px;fill:#fff;stroke:none;
+  filter:drop-shadow(-1.6px 0 var(--cyan)) drop-shadow(1.6px 0 var(--red))}
+.brand-block{flex:1 1 220px;min-width:0}
+.brand-title{font-size:20px;margin:0;font-weight:800;letter-spacing:-.3px;
+  text-shadow:-.8px 0 rgba(37,244,238,.6),.8px 0 rgba(254,44,85,.6)}
+.brand-sub{color:var(--mut);font-size:12.5px;margin-top:3px;letter-spacing:.1px}
+.head-actions{display:flex;gap:10px;flex:0 0 auto}
+
+/* ---------- Buttons ---------- */
+.btn{display:inline-flex;align-items:center;gap:8px;background:var(--surface2);color:var(--ink);
+  border:1px solid var(--line);padding:9px 14px;border-radius:10px;cursor:pointer;
+  font-size:13px;font-weight:600;font-family:inherit;transition:border-color .18s var(--ease),background .18s var(--ease),color .18s var(--ease)}
+.btn .ico{font-size:16px}
+.btn:hover{border-color:var(--cyan);color:#fff;background:var(--elev)}
+.btn:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+.btn:active{transform:translateY(1px)}
+.btn.primary{background:var(--red);border-color:var(--red);color:#fff}
+.btn.primary:hover{background:#ff476b;border-color:#ff476b}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+
+/* ---------- Dropzone ---------- */
+#drop{border:2px dashed var(--line2);border-radius:var(--radius-lg);padding:60px 22px;text-align:center;
+  background:var(--surface);transition:border-color .2s var(--ease),background .2s var(--ease),transform .2s var(--ease);cursor:pointer}
+#drop:hover{border-color:var(--cyan)}
+#drop.hover{border-color:var(--cyan);background:#10171c;transform:translateY(-2px)}
+#drop .drop-ico{color:var(--cyan);font-size:50px;margin-bottom:10px;
+  filter:drop-shadow(-1.4px 0 rgba(254,44,85,.5))}
+#drop .big{font-size:18px;font-weight:800;margin:6px 0 5px;letter-spacing:-.2px}
+#drop .small{color:var(--mut);font-size:13px}
+.err{background:rgba(254,44,85,.1);border:1px solid rgba(254,44,85,.45);color:#ff9fb1;
+  padding:12px 14px;border-radius:12px;margin-top:14px;display:none;align-items:center;gap:9px}
+.err .ico{font-size:17px;color:var(--red)}
+
+/* ---------- Filters ---------- */
+.filters{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-lg);padding:16px 18px;margin-bottom:20px}
+.filters-head{display:flex;align-items:center;gap:9px;margin-bottom:14px;flex-wrap:wrap}
+.filters-head .ico{font-size:16px;color:var(--cyan)}
+.filters-head h2{font-size:13px;margin:0;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--mut)}
+.filters-head .meta{margin-left:auto;color:var(--mut);font-size:12.5px}
+.filters-head .meta b{color:var(--cyan);font-weight:700}
+.filters-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+.f label{display:block;font-size:11px;color:var(--mut2);text-transform:uppercase;letter-spacing:.6px;font-weight:700;margin-bottom:6px}
+
+/* ---------- Searchable picker ---------- */
+.picker{position:relative;width:100%}
+.pk-trigger{width:100%;display:flex;align-items:center;gap:10px;background:var(--surface2);
+  border:1px solid var(--line);border-radius:10px;padding:10px 12px;cursor:pointer;
+  font-family:inherit;font-size:13.5px;color:var(--ink);text-align:left;
+  transition:border-color .15s var(--ease),background .15s var(--ease)}
+.pk-trigger:hover{border-color:var(--line2);background:var(--elev)}
+.pk-trigger:focus-visible{outline:none;border-color:var(--cyan);box-shadow:0 0 0 3px rgba(37,244,238,.18)}
+.picker.open .pk-trigger{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(37,244,238,.18)}
+.pk-val{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:600}
+.pk-val.is-all{color:var(--mut);font-weight:500}
+.pk-trigger .chev{font-size:16px;color:var(--mut);transition:transform .2s var(--ease)}
+.picker.open .pk-trigger .chev{transform:rotate(180deg);color:var(--cyan)}
+.pk-panel{position:absolute;top:calc(100% + 6px);left:0;right:0;z-index:var(--z-dropdown);
+  background:var(--elev);border:1px solid var(--line2);border-radius:12px;box-shadow:var(--shadow);
+  overflow:hidden;transform-origin:top;animation:pk-in .16s var(--ease)}
+@keyframes pk-in{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+.pk-search{display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid var(--line)}
+.pk-search .ico{font-size:15px;color:var(--mut2)}
+.pk-search input{flex:1;background:transparent;border:none;outline:none;color:var(--ink);font-family:inherit;font-size:13.5px}
+.pk-search input::placeholder{color:var(--mut2)}
+.pk-list{max-height:280px;overflow-y:auto;padding:6px}
+.pk-opt{display:flex;align-items:center;gap:8px;padding:9px 10px;border-radius:8px;cursor:pointer;font-size:13.5px;color:var(--ink)}
+.pk-opt .opt-t{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pk-opt .ico{font-size:15px;color:var(--cyan);opacity:0}
+.pk-opt:hover,.pk-opt.hl{background:var(--surface2)}
+.pk-opt.sel{color:var(--cyan)}
+.pk-opt.sel .ico{opacity:1}
+.pk-empty{padding:16px;text-align:center;color:var(--mut2);font-size:13px}
+
+/* ---------- KPI cards ---------- */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(196px,1fr));gap:14px;margin-bottom:20px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px}
+.kpi-top{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.kpi-ico{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;font-size:18px;flex:0 0 auto}
+.kpi-lab{font-size:12.5px;color:var(--mut);font-weight:600}
+.kpi-val{font-size:23px;font-weight:800;letter-spacing:-.4px;line-height:1.1}
+.kpi-sub{font-size:12px;color:var(--mut2);margin-top:6px}
+.pos{color:var(--green)} .neg{color:var(--red)} .warn{color:var(--amber)}
+
+/* ---------- Panels / grid ---------- */
+.grid{display:grid;gap:16px;margin-bottom:16px}
+.g2{grid-template-columns:1fr 1fr}
+.g3{grid-template-columns:1.25fr 1fr}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-lg);padding:18px 20px;min-width:0}
+.card h3{margin:0 0 3px;font-size:15px;font-weight:700;letter-spacing:-.2px}
+.card .desc{color:var(--mut);font-size:12px;margin-bottom:15px}
+.chart-box{position:relative;height:300px}
+.chart-box.tall{height:340px}
+
+/* ---------- Section titles ---------- */
+.section-title{display:flex;align-items:center;gap:9px;font-size:12.5px;font-weight:700;color:var(--mut);
+  text-transform:uppercase;letter-spacing:1px;margin:28px 0 13px;padding-bottom:9px;border-bottom:1px solid var(--line)}
+.section-title .ico{font-size:16px}
+
+/* ---------- Tables ---------- */
+table{width:100%;border-collapse:collapse;font-size:13px}
+.tbl-scroll{overflow:auto;max-height:420px}
+th,td{padding:9px 10px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--line)}
+th:first-child,td:first-child{text-align:left;white-space:normal;min-width:140px}
+thead th{position:sticky;top:0;background:var(--surface2);color:var(--mut);font-weight:700;
+  font-size:11px;text-transform:uppercase;letter-spacing:.5px;z-index:var(--z-sticky)}
+tbody tr{transition:background .12s var(--ease)}
+tbody tr:hover{background:var(--surface2)}
+td.num{font-variant-numeric:tabular-nums}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:999px;font-size:11.5px;font-weight:700}
+.pill::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.pill.ok{background:rgba(57,226,154,.14);color:var(--green)}
+.pill.bad{background:rgba(254,44,85,.14);color:var(--red)}
+.pill.wait{background:rgba(255,176,46,.14);color:var(--amber)}
+.pill.pend{background:rgba(91,157,255,.14);color:var(--blue)}
+.minibar{height:5px;border-radius:4px;background:var(--surface2);overflow:hidden;margin-top:5px;min-width:60px}
+.minibar>span{display:block;height:100%;border-radius:4px}
+
+/* ---------- Insights (no side-stripe) ---------- */
+.insight{display:flex;gap:11px;align-items:flex-start;border:1px solid var(--line);border-radius:12px;
+  padding:13px 15px;font-size:13px;color:var(--mut);margin-top:13px;background:rgba(37,244,238,.05)}
+.insight.warn{background:rgba(254,44,85,.06)}
+.insight>.ico{font-size:18px;margin-top:1px}
+.insight.warn>.ico{color:var(--red)}
+.insight:not(.warn)>.ico{color:var(--cyan)}
+.insight b{color:var(--ink);font-weight:700}
+
+.footnote{color:var(--mut2);font-size:11.5px;margin-top:8px}
+.hidden{display:none!important}
+
+/* ---------- Loading overlay ---------- */
+#loading{position:fixed;inset:0;z-index:1000;display:none;flex-direction:column;align-items:center;justify-content:center;
+  gap:16px;background:rgba(8,8,10,.84);backdrop-filter:blur(3px);text-align:center;padding:20px}
+#loading.show{display:flex}
+.spinner{width:54px;height:54px;border-radius:50%;border:3px solid rgba(255,255,255,.12);
+  border-top-color:var(--cyan);border-right-color:var(--red);animation:spin .8s linear infinite;will-change:transform}
+@keyframes spin{to{transform:rotate(360deg)}}
+#loading .ld-text{font-weight:800;font-size:16px;letter-spacing:-.2px}
+#loading .ld-sub{color:var(--mut);font-size:12.5px}
+
+/* ---------- Nhận định & khuyến nghị (prose) ---------- */
+.prose p{font-size:14px;line-height:1.7;color:var(--mut);margin:0 0 14px}
+.prose p:last-child{margin-bottom:0}
+.prose b{color:var(--ink);font-weight:700}
+.prose .sub-h{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:800;text-transform:uppercase;
+  letter-spacing:.7px;color:var(--ink);margin:20px 0 11px}
+.prose .sub-h .ico{color:var(--cyan);font-size:16px}
+.bullets{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:11px}
+.bullets li{position:relative;padding-left:22px;font-size:13.5px;line-height:1.6;color:var(--mut)}
+.bullets li::before{content:"";position:absolute;left:3px;top:7px;width:7px;height:7px;border-radius:50%;background:var(--cyan)}
+.bullets li.b-good::before{background:var(--green)}
+.bullets li.b-warn::before{background:var(--amber)}
+.bullets li.b-bad::before{background:var(--red)}
+.bullets li b{color:var(--ink);font-weight:700}
+
+/* ---------- Responsive ---------- */
+@media(max-width:920px){
+  .g2,.g3{grid-template-columns:1fr}
+  .kpis{grid-template-columns:repeat(auto-fit,minmax(170px,1fr))}
+}
+@media(max-width:760px){
+  .wrap{padding:18px 14px 72px}
+  .brand-title{font-size:17px}
+  .brand-sub{font-size:11.5px}
+  .filters{padding:14px}
+  .kpis{grid-template-columns:1fr 1fr;gap:11px}
+  .kpi{padding:14px}
+  .kpi-val{font-size:19px}
+  .card{padding:15px 15px}
+  .card h3{font-size:14px}
+  .chart-box{height:270px}
+  .chart-box.tall{height:300px}
+  .section-title{margin:22px 0 11px}
+  th,td{padding:8px 9px}
+}
+@media(max-width:480px){
+  .wrap{padding:14px 11px 64px}
+  header.app{gap:11px;margin-bottom:18px}
+  .logo{width:40px;height:40px}
+  .logo svg{width:23px;height:23px}
+  .brand-title{font-size:15.5px}
+  .brand-sub{display:none}
+  .btn-label{display:none}
+  .btn{padding:9px 11px}
+  .head-actions{margin-left:auto}
+  .filters-head .meta{margin-left:0;flex-basis:100%;margin-top:6px}
+  .kpis{grid-template-columns:1fr}
+  .kpi-val{font-size:22px}
+  .chart-box{height:250px}
+  .chart-box.tall{height:280px}
+}
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{transition-duration:.01ms!important;animation-duration:.01ms!important}
+  .pk-panel{animation:none}
+}
+</style>
+</head>
+<body>
+<div id="loading">
+  <div class="spinner"></div>
+  <div class="ld-text">Đang xử lý dữ liệu…</div>
+  <div class="ld-sub" id="ldSub">Đọc &amp; phân tích file</div>
+</div>
+<div class="wrap">
+  <header class="app">
+    <div class="logo">
+      <svg viewBox="0 0 24 24"><path d="M16.5 3c.4 2.6 2.05 4.3 4.5 4.6v3.12c-1.6.08-3.1-.32-4.5-1.12v6.55a6.18 6.18 0 1 1-6.18-6.18c.4 0 .82.04 1.22.12v3.3c-.4-.13-.8-.2-1.22-.2a2.96 2.96 0 1 0 2.96 2.96V3h3.22z"/></svg>
+    </div>
+    <div class="brand-block">
+      <h1 class="brand-title">TikTok Affiliate Analyzer</h1>
+      <div class="brand-sub">Phân tích đơn hàng liên kết / quảng cáo cửa hàng TikTok Shop — chạy offline, dữ liệu không rời máy</div>
+    </div>
+    <div class="head-actions">
+      <button id="btnSample" class="btn hidden"><span class="ico" data-icon="refresh"></span><span class="btn-label">Đổi file</span></button>
+      <button id="btnCsv" class="btn primary hidden"><span class="ico" data-icon="download"></span><span class="btn-label">Xuất báo cáo CSV</span></button>
+    </div>
+  </header>
+
+  <!-- DROPZONE -->
+  <div id="drop">
+    <input type="file" id="file" accept=".xlsx,.xls" style="display:none">
+    <div class="ico drop-ico" data-icon="upload"></div>
+    <div class="big">Kéo–thả file .xlsx vào đây</div>
+    <div class="small">hoặc bấm để chọn file export đơn hàng affiliate của TikTok Shop</div>
+  </div>
+  <div id="err" class="err"><span class="ico" data-icon="alert"></span><span id="errMsg"></span></div>
+
+  <!-- DASHBOARD -->
+  <div id="dash" class="hidden">
+    <!-- Filters -->
+    <div class="filters">
+      <div class="filters-head">
+        <span class="ico" data-icon="filter"></span>
+        <h2>Bộ lọc</h2>
+        <div class="meta" id="metaInfo"></div>
+      </div>
+      <div class="filters-grid">
+        <div class="f"><label>Cửa hàng</label><div id="fShop"></div></div>
+        <div class="f"><label>Trạng thái quyết toán</label><div id="fStatus"></div></div>
+        <div class="f"><label>Loại nội dung</label><div id="fContent"></div></div>
+        <div class="f"><label>Loại đơn hàng</label><div id="fOrder"></div></div>
+      </div>
+    </div>
+
+    <!-- KPIs -->
+    <div class="kpis" id="kpis"></div>
+
+    <!-- Status + content -->
+    <div class="grid g2">
+      <div class="card">
+        <h3>Trạng thái quyết toán</h3>
+        <div class="desc">Phân bổ GMV theo vòng đời thanh toán hoa hồng</div>
+        <div class="chart-box"><canvas id="chStatus"></canvas></div>
+      </div>
+      <div class="card">
+        <h3>Loại nội dung</h3>
+        <div class="desc">Kênh tạo ra đơn hàng (Live / Video / Trưng bày…)</div>
+        <div class="chart-box"><canvas id="chContent"></canvas></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Chi tiết theo trạng thái</h3>
+      <div class="desc">Hoa hồng thực nhận chỉ phát sinh ở đơn “Đã quyết toán”</div>
+      <div class="tbl-scroll"><table id="tblStatus"></table></div>
+    </div>
+
+    <!-- Time -->
+    <div class="section-title"><span class="ico" data-icon="clock"></span>Theo thời gian</div>
+    <div class="card">
+      <h3>GMV &amp; Hoa hồng theo ngày đặt hàng</h3>
+      <div class="desc">Cột = GMV mỗi ngày · Đường = hoa hồng ước tính &amp; thực nhận</div>
+      <div class="chart-box tall"><canvas id="chDay"></canvas></div>
+    </div>
+
+    <!-- Shops -->
+    <div class="section-title"><span class="ico" data-icon="bag"></span>Theo cửa hàng</div>
+    <div class="grid g3">
+      <div class="card">
+        <h3>Top cửa hàng theo GMV</h3>
+        <div class="desc">10 cửa hàng đóng góp doanh số lớn nhất</div>
+        <div class="chart-box tall"><canvas id="chShop"></canvas></div>
+      </div>
+      <div class="card">
+        <h3>Bảng cửa hàng</h3>
+        <div class="desc">GMV · HH thực nhận · tỷ lệ hoàn</div>
+        <div class="tbl-scroll" style="max-height:340px"><table id="tblShop"></table></div>
+      </div>
+    </div>
+
+    <!-- Products -->
+    <div class="section-title"><span class="ico" data-icon="package"></span>Theo sản phẩm</div>
+    <div class="grid g2">
+      <div class="card">
+        <h3>Top sản phẩm bán chạy</h3>
+        <div class="desc">Theo số món bán ra</div>
+        <div class="tbl-scroll"><table id="tblProdTop"></table></div>
+      </div>
+      <div class="card">
+        <h3>Sản phẩm bị hoàn nhiều nhất</h3>
+        <div class="desc">Theo số món hoàn tiền</div>
+        <div class="tbl-scroll"><table id="tblProdRefund"></table></div>
+      </div>
+    </div>
+
+    <!-- Ineligible -->
+    <div class="section-title"><span class="ico" data-icon="alert"></span>Phân tích đơn “Không đủ điều kiện”</div>
+    <div class="grid g3">
+      <div class="card">
+        <h3>Hoa hồng ước tính bị mất theo cửa hàng</h3>
+        <div class="desc">Đơn bị loại → mất phần hoa hồng dự kiến</div>
+        <div class="chart-box tall"><canvas id="chIne"></canvas></div>
+      </div>
+      <div class="card">
+        <h3>Bảng đơn không đủ điều kiện</h3>
+        <div class="desc">Số đơn · GMV · HH ước tính mất</div>
+        <div class="tbl-scroll" style="max-height:340px"><table id="tblIne"></table></div>
+      </div>
+    </div>
+    <div id="ineInsight" class="insight warn"></div>
+
+    <!-- Est vs Actual -->
+    <div class="section-title"><span class="ico" data-icon="compare"></span>Ước tính vs Thực nhận</div>
+    <div class="grid g3">
+      <div class="card">
+        <h3>Hoa hồng: ước tính vs thực nhận theo cửa hàng</h3>
+        <div class="desc">Khoảng cách = hao hụt do hoàn hàng / đơn không hợp lệ</div>
+        <div class="chart-box tall"><canvas id="chGap"></canvas></div>
+      </div>
+      <div class="card">
+        <h3>Bảng hao hụt</h3>
+        <div class="desc">Hiệu suất thực nhận / ước tính</div>
+        <div class="tbl-scroll" style="max-height:340px"><table id="tblGap"></table></div>
+      </div>
+    </div>
+    <!-- Nhận định & khuyến nghị (đặt cuối, gộp 1 card) -->
+    <div class="section-title"><span class="ico" data-icon="clipboard"></span>Nhận định &amp; khuyến nghị</div>
+    <div class="card">
+      <div class="prose" id="summaryProse"></div>
+    </div>
+
+    <div class="footnote" id="foot"></div>
+  </div>
+</div>
+
+<script src="lib/xlsx.full.min.js"></script>
+<script src="lib/chart.umd.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
