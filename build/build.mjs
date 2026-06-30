@@ -10,10 +10,14 @@ const read = (p) => readFileSync(join(here, p), 'utf8');
 const safe = (s) => s.replaceAll('</script>', '<\\/script>');
 
 let html = read('app.html');
+// Dùng HÀM thay thế (không phải chuỗi) để JS không diễn giải các mẫu "$&", "$`"...
+// có sẵn trong code minified của thư viện (lỗi này từng chèn nhầm thẻ <script> vào giữa SheetJS).
 for (const lib of ['lib/xlsx.full.min.js', 'lib/chart.umd.min.js']) {
-  html = html.replace(`<script src="${lib}"></script>`, `<script>\n${safe(read(lib))}\n</script>`);
+  const inline = `<script>\n${safe(read(lib))}\n</script>`;
+  html = html.replace(`<script src="${lib}"></script>`, () => inline);
 }
-html = html.replace('<script src="app.js"></script>', `<script>\n${read('app.js')}\n</script>`);
+const appInline = `<script>\n${read('app.js')}\n</script>`;
+html = html.replace('<script src="app.js"></script>', () => appInline);
 
 const out = join(here, '..', 'TikTok_Affiliate_Analyzer.html');
 writeFileSync(out, html);
