@@ -304,7 +304,7 @@ td.num{font-variant-numeric:tabular-nums}
         <div class="meta" id="metaInfo"></div>
       </div>
       <div class="filters-grid">
-        <div class="f"><label>Cửa hàng</label><div id="fShop"></div></div>
+        <div class="f"><label>Kênh</label><div id="fShop"></div></div>
         <div class="f"><label>Trạng thái quyết toán</label><div id="fStatus"></div></div>
         <div class="f"><label>Loại nội dung</label><div id="fContent"></div></div>
         <div class="f"><label>Loại đơn hàng</label><div id="fOrder"></div></div>
@@ -323,7 +323,7 @@ td.num{font-variant-numeric:tabular-nums}
       </div>
       <div class="card">
         <h3>Loại nội dung</h3>
-        <div class="desc">Kênh tạo ra đơn hàng (Live / Video / Trưng bày…)</div>
+        <div class="desc">Nguồn tạo ra đơn hàng (Live / Video / Trưng bày…)</div>
         <div class="chart-box"><canvas id="chContent"></canvas></div>
       </div>
     </div>
@@ -343,15 +343,15 @@ td.num{font-variant-numeric:tabular-nums}
     </div>
 
     <!-- Shops -->
-    <div class="section-title"><span class="ico" data-icon="bag"></span>Theo cửa hàng</div>
+    <div class="section-title"><span class="ico" data-icon="bag"></span>Theo kênh</div>
     <div class="grid g3">
       <div class="card">
-        <h3>Top cửa hàng theo GMV</h3>
-        <div class="desc">10 cửa hàng đóng góp doanh số lớn nhất</div>
+        <h3>Top kênh theo GMV</h3>
+        <div class="desc">10 kênh đóng góp doanh số lớn nhất</div>
         <div class="chart-box tall"><canvas id="chShop"></canvas></div>
       </div>
       <div class="card">
-        <h3>Bảng cửa hàng</h3>
+        <h3>Bảng kênh</h3>
         <div class="desc">GMV · HH thực nhận · tỷ lệ hoàn</div>
         <div class="tbl-scroll" style="max-height:340px"><table id="tblShop"></table></div>
       </div>
@@ -376,7 +376,7 @@ td.num{font-variant-numeric:tabular-nums}
     <div class="section-title"><span class="ico" data-icon="alert"></span>Phân tích đơn “Không đủ điều kiện”</div>
     <div class="grid g3">
       <div class="card">
-        <h3>Hoa hồng ước tính bị mất theo cửa hàng</h3>
+        <h3>Hoa hồng ước tính bị mất theo kênh</h3>
         <div class="desc">Đơn bị loại → mất phần hoa hồng dự kiến</div>
         <div class="chart-box tall"><canvas id="chIne"></canvas></div>
       </div>
@@ -392,7 +392,7 @@ td.num{font-variant-numeric:tabular-nums}
     <div class="section-title"><span class="ico" data-icon="compare"></span>Ước tính vs Thực nhận</div>
     <div class="grid g3">
       <div class="card">
-        <h3>Hoa hồng: ước tính vs thực nhận theo cửa hàng</h3>
+        <h3>Hoa hồng: ước tính vs thực nhận theo kênh</h3>
         <div class="desc">Khoảng cách = hao hụt do hoàn hàng / đơn không hợp lệ</div>
         <div class="chart-box tall"><canvas id="chGap"></canvas></div>
       </div>
@@ -710,7 +710,7 @@ function hideLoading(){document.getElementById('loading').classList.remove('show
 function uniq(key){return [...new Set(RAW.map(r=>r[key]))].filter(x=>x&&x!=='(không rõ)').sort((a,b)=>a.localeCompare(b,'vi'));}
 function initFilters(){
   const mk=(id,onCh)=>{ if(!PICKERS[id]) PICKERS[id]=new Picker(document.getElementById(id),{onChange:onCh}); return PICKERS[id]; };
-  mk('fShop',render).setOptions(uniq('shop'),'Tất cả cửa hàng');
+  mk('fShop',render).setOptions(uniq('shop'),'Tất cả kênh');
   mk('fStatus',render).setOptions(uniq('status'),'Tất cả trạng thái');
   mk('fContent',render).setOptions(uniq('content'),'Tất cả nội dung');
   mk('fOrder',render).setOptions(uniq('orderType'),'Tất cả loại đơn');
@@ -817,17 +817,17 @@ function renderSummary(D,A){
 
   if(ineRate>=0.1)
     F(ineRate>=0.2?'bad':'warn',
-      `<b>Nhiều đơn bị loại — đây là chỗ mất tiền nhiều nhất.</b> Có tới <b>${p1(ineRate)}</b> đơn không được tính hoa hồng, tương đương khoảng <b>${money(ineLost)}</b> bị mất${ineTopShop?`, nhiều nhất ở cửa hàng <b>${esc(ineTopShop.k)}</b>`:''}. Thường là do khách huỷ/trả hàng, hoặc cách gắn link và nội dung chưa đúng quy định của TikTok.`);
+      `<b>Nhiều đơn bị loại — đây là chỗ mất tiền nhiều nhất.</b> Có tới <b>${p1(ineRate)}</b> đơn không được tính hoa hồng, tương đương khoảng <b>${money(ineLost)}</b> bị mất${ineTopShop?`, nhiều nhất ở kênh <b>${esc(ineTopShop.k)}</b>`:''}. Thường là do khách huỷ/trả hàng, hoặc cách gắn link và nội dung chưa đúng quy định của TikTok.`);
 
   if(refundRate>=0.05)
     F(refundRate>=0.1?'bad':'warn',
-      `<b>Tỷ lệ trả hàng hơi cao.</b> Khoảng <b>${(refundRate*100).toFixed(1)}%</b> số món bị trả lại (${fmt(A.refund)} món)${refundShop&&refundShop.rate>=0.1?`, cao nhất ở <b>${esc(refundShop.k)}</b> (${(refundShop.rate*100).toFixed(1)}%)`:''}. Mỗi món bị trả là một lần mất khoản hoa hồng đã tính.`);
+      `<b>Tỷ lệ trả hàng hơi cao.</b> Khoảng <b>${(refundRate*100).toFixed(1)}%</b> số món bị trả lại (${fmt(A.refund)} món)${refundShop&&refundShop.rate>=0.1?`, nhiều nhất ở kênh <b>${esc(refundShop.k)}</b> (${(refundShop.rate*100).toFixed(1)}%)`:''}. Mỗi món bị trả là một lần mất khoản hoa hồng đã tính.`);
   else if(A.sold>0)
     F('good',`<b>Trả hàng ít</b> (${(refundRate*100).toFixed(1)}%) — rất tốt.`);
 
   if(nShop>=2 && top4Share>0.6)
     F(top4Share>0.8?'bad':'warn',
-      `<b>Doanh số phụ thuộc vào ít cửa hàng.</b> ${Math.min(4,nShop)} cửa hàng lớn nhất chiếm tới <b>${p1(top4Share)}</b> doanh số, riêng <b>${esc(topShop.k)}</b> đã <b>${p1(top1Share)}</b>. Nếu một trong số này bán chậm lại, thu nhập sẽ giảm theo ngay.`);
+      `<b>Doanh số phụ thuộc vào ít kênh.</b> ${Math.min(4,nShop)} kênh lớn nhất chiếm tới <b>${p1(top4Share)}</b> doanh số, riêng kênh <b>${esc(topShop.k)}</b> đã <b>${p1(top1Share)}</b>. Nếu một trong số này bán chậm lại, thu nhập sẽ giảm theo ngay.`);
 
   if(liveShare>0.9)
     F('warn',`<b>Gần như chỉ bán được khi Live.</b> ${p1(liveShare)} đơn đến từ livestream; video ngắn và gian hàng trưng bày gần như chưa tạo ra đơn. Nghĩa là ngoài giờ live thì hầu như không có doanh thu.`);
@@ -841,11 +841,11 @@ function renderSummary(D,A){
   const recos=[];
   const R=(p,html)=>recos.push({p,html});
   if(ineRate>=0.1 && ineLost>0)
-    R(1,`<b>Xử lý nhóm đơn bị loại trước tiên.</b> Xem lại vì sao đơn bị loại (khách huỷ/trả hàng, hay gắn link sai cách)${ineTopShop?`, bắt đầu từ cửa hàng <b>${esc(ineTopShop.k)}</b>`:''}. Giảm được phần này là có thể lấy lại tới <b>${money(ineLost)}</b> hoa hồng.`);
+    R(1,`<b>Xử lý nhóm đơn bị loại trước tiên.</b> Xem lại vì sao đơn bị loại (khách huỷ/trả hàng, hay gắn link sai cách)${ineTopShop?`, bắt đầu từ kênh <b>${esc(ineTopShop.k)}</b>`:''}. Giảm được phần này là có thể lấy lại tới <b>${money(ineLost)}</b> hoa hồng.`);
   if(refundShop && refundShop.rate>=0.1)
-    R(1,`<b>Trao đổi với cửa hàng ${esc(refundShop.k)} để giảm trả hàng.</b> Kiểm tra lại size, hình ảnh và mô tả sản phẩm cho đúng — đây là cách dễ nhất để bớt mất hoa hồng.`);
+    R(1,`<b>Trao đổi với kênh ${esc(refundShop.k)} để giảm trả hàng.</b> Kiểm tra lại size, hình ảnh và mô tả sản phẩm cho đúng — đây là cách dễ nhất để bớt mất hoa hồng.`);
   if(top4Share>0.7 && nShop>4)
-    R(2,`<b>Tìm thêm cửa hàng mới để hợp tác.</b> Đừng chỉ dựa vào vài cửa hàng lớn — trải rộng ra thì thu nhập sẽ ổn định hơn.`);
+    R(2,`<b>Tìm thêm kênh mới để hợp tác.</b> Đừng chỉ dựa vào vài kênh lớn — trải rộng ra thì thu nhập sẽ ổn định hơn.`);
   if(liveShare>0.9)
     R(2,`<b>Làm thêm video ngắn và sắp xếp gian hàng trưng bày</b> để có đơn cả khi không livestream.`);
   if(pending.length>0 && pendEst>0)
@@ -853,7 +853,7 @@ function renderSummary(D,A){
   if(topProdShare>0.4 && topProd)
     R(2,`<b>Bán kèm thêm sản phẩm khác</b> cùng với món bán chạy “${esc(clip(topProd.name,38))}” để không phụ thuộc vào một sản phẩm.`);
   if(topShop.gmv>0)
-    R(3,`<b>Học theo cách làm của ${esc(topShop.k)}</b> (đang hiệu quả nhất) — cùng khung giờ live, cách dẫn dắt, nhóm sản phẩm — rồi áp dụng cho các cửa hàng khác.`);
+    R(3,`<b>Học theo cách làm của kênh ${esc(topShop.k)}</b> (đang hiệu quả nhất) — cùng khung giờ live, cách dẫn dắt, nhóm sản phẩm — rồi áp dụng cho các kênh khác.`);
   R(3,`<b>Ưu tiên đẩy mạnh sản phẩm hoa hồng cao mà ít bị trả lại</b>; giảm bớt những sản phẩm hay bị trả hàng.`);
 
   // ===== Render 1 card prose =====
@@ -922,7 +922,7 @@ function renderShops(D){
     scales:{x:axisMoney,y:axisCat}}});
   const maxG=Math.max(...rows.map(r=>r.gmv),1);
   document.getElementById('tblShop').innerHTML=
-    `<thead><tr><th>Cửa hàng</th><th>Đơn</th><th>GMV</th><th>HH thực nhận</th><th>Hoàn</th><th>% hoàn</th></tr></thead><tbody>`+
+    `<thead><tr><th>Kênh</th><th>Đơn</th><th>GMV</th><th>HH thực nhận</th><th>Hoàn</th><th>% hoàn</th></tr></thead><tbody>`+
     rows.map(r=>`<tr><td>${esc(r.k)}<div class="minibar"><span style="width:${(r.gmv/maxG*100).toFixed(1)}%;background:${C_CYAN}"></span></div></td>
       <td class="num">${fmt(r.orders)}</td><td class="num">${money(r.gmv)}</td>
       <td class="num">${money(r.act)}</td><td class="num">${fmt(r.refund)}</td>
@@ -952,7 +952,7 @@ function renderIneligible(D){
     options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},
       tooltip:{callbacks:{label:c=>money(c.parsed.x)}}},scales:{x:axisMoney,y:axisCat}}});
   document.getElementById('tblIne').innerHTML=
-    `<thead><tr><th>Cửa hàng</th><th>Số đơn</th><th>GMV</th><th>HH ước tính mất</th></tr></thead><tbody>`+
+    `<thead><tr><th>Kênh</th><th>Số đơn</th><th>GMV</th><th>HH ước tính mất</th></tr></thead><tbody>`+
     (rows.length?rows.map(r=>`<tr><td>${esc(r.k)}</td><td class="num">${fmt(r.rows)}</td>
       <td class="num">${money(r.gmv)}</td><td class="num neg">${money(r.lost)}</td></tr>`).join('')
       :`<tr><td colspan="4" style="text-align:center;color:var(--mut2)">Không có đơn không đủ điều kiện</td></tr>`)+`</tbody>`;
@@ -972,7 +972,7 @@ function renderGap(D){
     plugins:{legend:{labels:{boxWidth:12,color:'#e8e8ee'}},tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${money(c.parsed.x)}`}}},
     scales:{x:axisMoney,y:axisCat}}});
   document.getElementById('tblGap').innerHTML=
-    `<thead><tr><th>Cửa hàng</th><th>HH ước tính</th><th>HH thực nhận</th><th>Hao hụt</th><th>Hiệu suất</th></tr></thead><tbody>`+
+    `<thead><tr><th>Kênh</th><th>HH ước tính</th><th>HH thực nhận</th><th>Hao hụt</th><th>Hiệu suất</th></tr></thead><tbody>`+
     rows.map(r=>`<tr><td>${esc(r.k)}</td><td class="num">${money(r.est)}</td><td class="num">${money(r.act)}</td>
       <td class="num neg">${money(r.gap)}</td><td class="num ${r.eff<70?'warn':'pos'}">${r.eff.toFixed(1)}%</td></tr>`).join('')+`</tbody>`;
 }
@@ -992,7 +992,7 @@ function exportCSV(){
   push('THEO TRẠNG THÁI','Số dòng','GMV','HH ước tính','HH thực nhận');
   for(const [k,v] of groupBy(D,r=>r.status)){const a=agg(v);push(k,a.rows,Math.round(a.gmv),Math.round(a.est),Math.round(a.act));}
   push('');
-  push('THEO CỬA HÀNG','Đơn','GMV','HH thực nhận','Món hoàn');
+  push('THEO KÊNH','Đơn','GMV','HH thực nhận','Món hoàn');
   for(const [k,v] of [...groupBy(D,r=>r.shop)].sort((a,b)=>sum(b[1],x=>x.gmv)-sum(a[1],x=>x.gmv))){const a=agg(v);push(k,a.orders,Math.round(a.gmv),Math.round(a.act),a.refund);}
   push('');
   push('THEO NGÀY','GMV','HH ước tính','HH thực nhận');
